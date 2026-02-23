@@ -1,18 +1,290 @@
 <!DOCTYPE html>
-<title>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-B9CL1P70CN"></script>
-</title>
-<html>
-  <body>
-    <p> Google Tag added </p>
-  </body>
-  <!-- Google tag (gtag.js) -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Superpower Shop</title>
+  
+    <!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-B9CL1P70CN"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-B9CL1P70CN', {
+		user_id: localStorage.getItem("studentId") || null
+	  });
+	  
+	  let startTime = Date.now();
+
+	window.addEventListener("beforeunload", function () {
+    const timeSpent = Math.round((Date.now() - startTime) / 1000);
+
+	  gtag('event', 'time_on_page', {
+		event_category: 'engagement',
+		event_label: 'superpower_shop',
+		value: timeSpent,
+		student_id: studentId
+	  });
+	});
+	
+	document.addEventListener("click", function(e) {
+	if (e.target.tagName === "BUTTON") {
+    gtag('event', 'button_click', {
+      button_text: e.target.innerText,
+      student_id: studentId
+			});
+		}
+	});
+	</script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #1f2933;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .balance {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .shop {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 6px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .price {
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .log {
+      margin-top: 40px;
+      background: white;
+      padding: 20px;
+      border-radius: 6px;
+    }
+
+    .log ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🦸 Superpower Shop</h1>
+    <p>Browse and purchase superpowers using fake currency.</p>
+    <div class="balance">
+      Balance: <span id="balance">1000</span> PowerCoins
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="shop" id="shop"></div>
+
+    <div class="log">
+      <h2>Purchase Log</h2>
+      <ul id="purchaseLog"></ul>
+    </div>
+	
+	<div class="log">
+  <h2>Your Cart</h2>
+  <ul id="cartList"></ul>
+  <button onclick="checkout()">Checkout</button>
+</div>
+  </div>
 
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+	const cartList = document.getElementById("cartList");
 
-  gtag('config', 'G-B9CL1P70CN');
+function renderCart() {
+  cartList.innerHTML = "";
+
+  cart.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      ${item.name} - ${item.price} PowerCoins
+      <button onclick="removeFromCart(${index})">Remove</button>
+    `;
+    cartList.appendChild(li);
+  });
+}
+
+function removeFromCart(index) {
+  const removedItem = cart[index];
+  balance += removedItem.price;
+  balanceEl.textContent = balance;
+
+  cart.splice(index, 1);
+
+  renderCart();
+  renderShop();
+
+  gtag('event', 'remove_from_cart', {
+    item_name: removedItem.name,
+    value: removedItem.price,
+    student_id: studentId
+  });
+}
+
+  // -----------------------------
+  // STUDENT ID GENERATION
+  // -----------------------------
+  function generateStudentId() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let randomPart = "";
+    for (let i = 0; i < 6; i++) {
+      randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `SP-${randomPart}-${Date.now().toString().slice(-6)}`;
+  }
+
+  let studentId = localStorage.getItem("studentId");
+  if (!studentId) {
+    studentId = generateStudentId();
+    localStorage.setItem("studentId", studentId);
+  }
+
+  // -----------------------------
+  // FAKE CURRENCY SYSTEM
+  // -----------------------------
+  let balance = 1000;
+  let cart = [];
+
+  const superpowers = [
+    { id: 1, name: "Flight", price: 300, description: "Soar through the skies at will." },
+    { id: 2, name: "Invisibility", price: 500, description: "Become completely unseen." },
+    { id: 3, name: "Super Strength", price: 400, description: "Lift cars like they're toys." },
+    { id: 4, name: "Telepathy", price: 350, description: "Read minds and communicate mentally." },
+    { id: 5, name: "Time Travel", price: 800, description: "Move freely through time." }
+  ];
+
+  const shopEl = document.getElementById("shop");
+  const balanceEl = document.getElementById("balance");
+  const logEl = document.getElementById("purchaseLog");
+
+  function renderShop() {
+    shopEl.innerHTML = "";
+
+    superpowers.forEach(power => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      card.innerHTML = `
+        <h3>${power.name}</h3>
+        <p>${power.description}</p>
+        <div class="price">${power.price} PowerCoins</div>
+        <button ${balance < power.price ? "disabled" : ""}>
+          Purchase
+        </button>
+      `;
+
+      const button = card.querySelector("button");
+      button.addEventListener("click", () => purchasePower(power));
+
+      shopEl.appendChild(card);
+    });
+  }
+
+  function purchasePower(power) {
+  if (balance >= power.price) {
+    balance -= power.price;
+    balanceEl.textContent = balance;
+
+    cart.push(power);
+
+    renderCart();
+    renderShop();
+
+    gtag('event', 'add_to_cart', {
+      currency: 'POW',
+      value: power.price,
+      item_name: power.name,
+      student_id: studentId
+    });
+  }
+}
+
+function showCompletionId() {
+
+  const completionDiv = document.createElement("div");
+  completionDiv.className = "log";
+  completionDiv.style.marginTop = "20px";
+
+  completionDiv.innerHTML = `
+    <h2>Assignment Complete 🎉</h2>
+    <p><strong>Your Completion ID:</strong></p>
+    <p style="font-size: 20px; font-weight: bold;">${studentId}</p>
+    <p>Submit this ID to confirm you completed the assignment.</p>
+  `;
+
+  document.querySelector(".container").appendChild(completionDiv);
+}
+
+  function checkout() {
+  if (cart.length === 0) {
+    alert("Your cart is empty!");
+    return;
+  }
+
+  const totalValue = cart.reduce((sum, item) => sum + item.price, 0);
+
+  gtag('event', 'purchase', {
+    transaction_id: studentId,
+    value: totalValue,
+    currency: 'POW',
+    student_id: studentId
+  });
+
+  showCompletionId();
+}
+
+  renderShop();
 </script>
+
+
+</body>
 </html>
